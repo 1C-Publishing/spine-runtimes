@@ -51,7 +51,7 @@ namespace Spine {
 			this.attachmentLoader = attachmentLoader;
 			Scale = 1;
 		}
-
+#if !PORTABLE
 #if WINDOWS_STOREAPP
         private async Task<SkeletonData> ReadFile(string path) {
             var folder = Windows.ApplicationModel.Package.Current.InstalledLocation;
@@ -81,7 +81,7 @@ namespace Spine {
 			}
 		}
 #endif
-
+#endif
 		public SkeletonData ReadSkeletonData (TextReader reader) {
 			if (reader == null) throw new ArgumentNullException("reader cannot be null.");
 
@@ -221,7 +221,11 @@ namespace Spine {
 
 					mesh.Path = path; 
 					mesh.vertices = GetFloatArray(map, "vertices", Scale);
-					mesh.triangles = GetIntArray(map, "triangles");
+#if PORTABLE
+                    mesh.triangles = GetUShortArray(map, "triangles");
+#else
+                    mesh.triangles = GetIntArray(map, "triangles");
+#endif
 					mesh.regionUVs = GetFloatArray(map, "uvs", 1);
 					mesh.UpdateUVs();
 
@@ -263,7 +267,11 @@ namespace Spine {
 					}
 					mesh.bones = bones.ToArray();
 					mesh.weights = weights.ToArray();
-					mesh.triangles = GetIntArray(map, "triangles");
+#if PORTABLE
+                    mesh.triangles = GetUShortArray(map, "triangles");
+#else
+                    mesh.triangles = GetIntArray(map, "triangles");
+#endif
 					mesh.regionUVs = uvs;
 					mesh.UpdateUVs();
 
@@ -311,8 +319,18 @@ namespace Spine {
 				values[i] = (int)(float)list[i];
 			return values;
 		}
-
-		private float GetFloat (Dictionary<String, Object> map, String name, float defaultValue) {
+#if PORTABLE
+        private ushort[] GetUShortArray(Dictionary<String, Object> map, String name)
+        {
+            var list = (List<Object>)map[name];
+            var values = new ushort[list.Count];
+            for (int i = 0, n = list.Count; i < n; i++)
+                values[i] = (ushort)(float)list[i];
+            return values;
+        }
+#endif        
+        private float GetFloat(Dictionary<String, Object> map, String name, float defaultValue)
+        {
 			if (!map.ContainsKey(name))
 				return defaultValue;
 			return (float)map[name];

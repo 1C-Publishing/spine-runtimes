@@ -36,7 +36,11 @@ namespace Spine {
 	public class SkinnedMeshAttachment : Attachment {
 		internal int[] bones;
 		internal float[] weights, uvs, regionUVs;
+#if PORTABLE		
+		internal ushort[] triangles;
+#else
 		internal int[] triangles;
+#endif
 		internal float regionOffsetX, regionOffsetY, regionWidth, regionHeight, regionOriginalWidth, regionOriginalHeight;
 		internal float r = 1, g = 1, b = 1, a = 1;
 
@@ -45,8 +49,11 @@ namespace Spine {
 		public float[] Weights { get { return weights; } set { weights = value; } }
 		public float[] RegionUVs { get { return regionUVs; } set { regionUVs = value; } }
 		public float[] UVs { get { return uvs; } set { uvs = value; } }
-		public int[] Triangles { get { return triangles; } set { triangles = value; } }
-
+#if PORTABLE		
+        public ushort[] Triangles { get { return triangles; } set { triangles = value; } }
+#else
+        public int[] Triangles { get { return triangles; } set { triangles = value; } }
+#endif
 		public float R { get { return r; } set { r = value; } }
 		public float G { get { return g; } set { g = value; } }
 		public float B { get { return b; } set { b = value; } }

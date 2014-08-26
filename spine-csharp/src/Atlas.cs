@@ -44,6 +44,15 @@ namespace Spine {
 		List<AtlasRegion> regions = new List<AtlasRegion>();
 		TextureLoader textureLoader;
 
+#if PORTABLE
+	    public List<AtlasPage> Pages 
+        {
+	        get { return pages; }
+	    }
+#endif
+
+#if !PORTABLE   
+     
 #if WINDOWS_STOREAPP
 		private async Task ReadFile(string path, TextureLoader textureLoader) {
 			var folder = Windows.ApplicationModel.Package.Current.InstalledLocation;
@@ -78,7 +87,7 @@ namespace Spine {
 			}
 		}
 #endif
-
+#endif
 		public Atlas (TextReader reader, String dir, TextureLoader textureLoader) {
 			Load(reader, dir, textureLoader);
 		}
