@@ -51,6 +51,7 @@ namespace Spine {
 			this.attachmentLoader = attachmentLoader;
 			Scale = 1;
 		}
+
 #if !PORTABLE
 #if WINDOWS_STOREAPP
         private async Task<SkeletonData> ReadFile(string path) {
@@ -82,7 +83,7 @@ namespace Spine {
 		}
 #endif
 #endif
-		public SkeletonData ReadSkeletonData (TextReader reader) {
+        public SkeletonData ReadSkeletonData (TextReader reader) {
 			if (reader == null) throw new ArgumentNullException("reader cannot be null.");
 
 			var skeletonData = new SkeletonData();
@@ -96,7 +97,7 @@ namespace Spine {
 				skeletonData.hash = (String)skeletonMap["hash"];
 				skeletonData.version = (String)skeletonMap["spine"];
 				skeletonData.width = GetFloat(skeletonMap, "width", 0);
-				skeletonData.height = GetFloat(skeletonMap, "width", 1);
+				skeletonData.height = GetFloat(skeletonMap, "height", 0);
 			}
 			
 			// Bones.
@@ -114,6 +115,8 @@ namespace Spine {
 				boneData.rotation = GetFloat(boneMap, "rotation", 0);
 				boneData.scaleX = GetFloat(boneMap, "scaleX", 1);
 				boneData.scaleY = GetFloat(boneMap, "scaleY", 1);
+				boneData.flipX = GetBoolean(boneMap, "flipX", false);
+				boneData.flipY = GetBoolean(boneMap, "flipY", false);
 				boneData.inheritScale = GetBoolean(boneMap, "inheritScale", true);
 				boneData.inheritRotation = GetBoolean(boneMap, "inheritRotation", true);
 				skeletonData.bones.Add(boneData);
@@ -252,11 +255,7 @@ namespace Spine {
 
 					mesh.Path = path; 
 					mesh.vertices = GetFloatArray(map, "vertices", Scale);
-#if PORTABLE
-                    mesh.triangles = GetUShortArray(map, "triangles");
-#else
-                    mesh.triangles = GetIntArray(map, "triangles");
-#endif
+                    mesh.triangles = GetUshortArray(map, "triangles");
 					mesh.regionUVs = GetFloatArray(map, "uvs", 1);
 					mesh.UpdateUVs();
 
@@ -298,11 +297,7 @@ namespace Spine {
 					}
 					mesh.bones = bones.ToArray();
 					mesh.weights = weights.ToArray();
-#if PORTABLE
-                    mesh.triangles = GetUShortArray(map, "triangles");
-#else
-                    mesh.triangles = GetIntArray(map, "triangles");
-#endif
+                    mesh.triangles = GetUshortArray(map, "triangles");
 					mesh.regionUVs = uvs;
 					mesh.UpdateUVs();
 
@@ -350,8 +345,9 @@ namespace Spine {
 				values[i] = (int)(float)list[i];
 			return values;
 		}
-#if PORTABLE
-        private ushort[] GetUShortArray(Dictionary<String, Object> map, String name)
+
+
+        private ushort[] GetUshortArray(Dictionary<String, Object> map, String name)
         {
             var list = (List<Object>)map[name];
             var values = new ushort[list.Count];
@@ -359,9 +355,9 @@ namespace Spine {
                 values[i] = (ushort)(float)list[i];
             return values;
         }
-#endif        
-        private float GetFloat(Dictionary<String, Object> map, String name, float defaultValue)
-        {
+
+
+		private float GetFloat (Dictionary<String, Object> map, String name, float defaultValue) {
 			if (!map.ContainsKey(name))
 				return defaultValue;
 			return (float)map[name];
@@ -405,7 +401,7 @@ namespace Spine {
 					foreach (KeyValuePair<String, Object> timelineEntry in timelineMap) {
 						var values = (List<Object>)timelineEntry.Value;
 						var timelineName = (String)timelineEntry.Key;
-						if (timelineName.Equals("color")) {
+						if (timelineName == "color") {
 							var timeline = new ColorTimeline(values.Count);
 							timeline.slotIndex = slotIndex;
 
@@ -420,7 +416,7 @@ namespace Spine {
 							timelines.Add(timeline);
 							duration = Math.Max(duration, timeline.frames[timeline.FrameCount * 5 - 5]);
 
-						} else if (timelineName.Equals("attachment")) {
+						} else if (timelineName == "attachment") {
 							var timeline = new AttachmentTimeline(values.Count);
 							timeline.slotIndex = slotIndex;
 
@@ -449,7 +445,7 @@ namespace Spine {
 					foreach (KeyValuePair<String, Object> timelineEntry in timelineMap) {
 						var values = (List<Object>)timelineEntry.Value;
 						var timelineName = (String)timelineEntry.Key;
-						if (timelineName.Equals("rotate")) {
+						if (timelineName == "rotate") {
 							var timeline = new RotateTimeline(values.Count);
 							timeline.boneIndex = boneIndex;
 
@@ -463,10 +459,10 @@ namespace Spine {
 							timelines.Add(timeline);
 							duration = Math.Max(duration, timeline.frames[timeline.FrameCount * 2 - 2]);
 
-						} else if (timelineName.Equals("translate") || timelineName.Equals("scale")) {
+						} else if (timelineName == "translate" || timelineName == "scale") {
 							TranslateTimeline timeline;
 							float timelineScale = 1;
-							if (timelineName.Equals("scale"))
+							if (timelineName == "scale")
 								timeline = new ScaleTimeline(values.Count);
 							else {
 								timeline = new TranslateTimeline(values.Count);
@@ -485,6 +481,21 @@ namespace Spine {
 							}
 							timelines.Add(timeline);
 							duration = Math.Max(duration, timeline.frames[timeline.FrameCount * 3 - 3]);
+
+						} else if (timelineName == "flipX" || timelineName == "flipY") {
+							bool x = timelineName == "flipX";
+							var timeline = x ? new FlipXTimeline(values.Count) : new FlipYTimeline(values.Count);
+							timeline.boneIndex = boneIndex;
+
+							String field = x ? "x" : "y";
+							int frameIndex = 0;
+							foreach (Dictionary<String, Object> valueMap in values) {
+								float time = (float)valueMap["time"];
+								timeline.SetFrame(frameIndex, time, valueMap.ContainsKey(field) ? (bool)valueMap[field] : false);
+								frameIndex++;
+							}
+							timelines.Add(timeline);
+							duration = Math.Max(duration, timeline.frames[timeline.FrameCount * 2 - 2]);
 
 						} else
 							throw new Exception("Invalid timeline type for a bone: " + timelineName + " (" + boneName + ")");
@@ -568,8 +579,8 @@ namespace Spine {
 				}
 			}
 
-			if (map.ContainsKey("draworder")) {
-				var values = (List<Object>)map["draworder"];
+			if (map.ContainsKey("drawOrder") || map.ContainsKey("draworder")) {
+				var values = (List<Object>)map[map.ContainsKey("drawOrder") ? "drawOrder" : "draworder"];
 				var timeline = new DrawOrderTimeline(values.Count);
 				int slotCount = skeletonData.slots.Count;
 				int frameIndex = 0;
