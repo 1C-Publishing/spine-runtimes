@@ -84,6 +84,12 @@
     <Compile Include="..\..\spine-csharp\src\EventData.cs">
       <Link>src\EventData.cs</Link>
     </Compile>
+    <Compile Include="..\..\spine-csharp\src\IkConstraint.cs">
+      <Link>src\IkConstraint.cs</Link>
+    </Compile>
+    <Compile Include="..\..\spine-csharp\src\IkConstraintData.cs">
+      <Link>src\IkConstraintData.cs</Link>
+    </Compile>
     <Compile Include="..\..\spine-csharp\src\Json.cs">
       <Link>src\Json.cs</Link>
     </Compile>
