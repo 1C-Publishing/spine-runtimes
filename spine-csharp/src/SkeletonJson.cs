@@ -31,6 +31,7 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 #if WINDOWS_STOREAPP
 using System.Threading.Tasks;
@@ -416,20 +417,25 @@ namespace Spine {
 							timelines.Add(timeline);
 							duration = Math.Max(duration, timeline.frames[timeline.FrameCount * 5 - 5]);
 
-						} else if (timelineName == "attachment") {
-							var timeline = new AttachmentTimeline(values.Count);
-							timeline.slotIndex = slotIndex;
+						} else if (timelineName == "attachment")
+						{
+						    var timeline = new AttachmentTimeline(values.Count);
+						    timeline.slotIndex = slotIndex;
 
-							int frameIndex = 0;
-							foreach (Dictionary<String, Object> valueMap in values) {
-								float time = (float)valueMap["time"];
-								timeline.setFrame(frameIndex++, time, (String)valueMap["name"]);
-							}
-							timelines.Add(timeline);
-							duration = Math.Max(duration, timeline.frames[timeline.FrameCount - 1]);
+						    int frameIndex = 0;
+						    foreach (Dictionary<String, Object> valueMap in values)
+						    {
+						        float time = (float) valueMap["time"];
+						        timeline.setFrame(frameIndex++, time, (String) valueMap["name"]);
+						    }
+						    timelines.Add(timeline);
+						    duration = Math.Max(duration, timeline.frames[timeline.FrameCount - 1]);
 
 						} else
-							throw new Exception("Invalid timeline type for a slot: " + timelineName + " (" + slotName + ")");
+						{
+                            Debug.WriteLine("Invalid timeline type for a slot: " + timelineName + " (" + slotName + ")");
+						    //throw new Exception("Invalid timeline type for a slot: " + timelineName + " (" + slotName + ")");
+						}
 					}
 				}
 			}
@@ -482,24 +488,29 @@ namespace Spine {
 							timelines.Add(timeline);
 							duration = Math.Max(duration, timeline.frames[timeline.FrameCount * 3 - 3]);
 
-						} else if (timelineName == "flipX" || timelineName == "flipY") {
-							bool x = timelineName == "flipX";
-							var timeline = x ? new FlipXTimeline(values.Count) : new FlipYTimeline(values.Count);
-							timeline.boneIndex = boneIndex;
+						} else if (timelineName == "flipX" || timelineName == "flipY")
+						{
+						    bool x = timelineName == "flipX";
+						    var timeline = x ? new FlipXTimeline(values.Count) : new FlipYTimeline(values.Count);
+						    timeline.boneIndex = boneIndex;
 
-							String field = x ? "x" : "y";
-							int frameIndex = 0;
-							foreach (Dictionary<String, Object> valueMap in values) {
-								float time = (float)valueMap["time"];
-								timeline.SetFrame(frameIndex, time, valueMap.ContainsKey(field) ? (bool)valueMap[field] : false);
-								frameIndex++;
-							}
-							timelines.Add(timeline);
-							duration = Math.Max(duration, timeline.frames[timeline.FrameCount * 2 - 2]);
+						    String field = x ? "x" : "y";
+						    int frameIndex = 0;
+						    foreach (Dictionary<String, Object> valueMap in values)
+						    {
+						        float time = (float) valueMap["time"];
+						        timeline.SetFrame(frameIndex, time, valueMap.ContainsKey(field) ? (bool) valueMap[field] : false);
+						        frameIndex++;
+						    }
+						    timelines.Add(timeline);
+						    duration = Math.Max(duration, timeline.frames[timeline.FrameCount*2 - 2]);
 
 						} else
-							throw new Exception("Invalid timeline type for a bone: " + timelineName + " (" + boneName + ")");
-					}
+						{
+                            Debug.WriteLine("Invalid timeline type for a bone: " + timelineName + " (" + boneName + ")");
+                            //throw new Exception("Invalid timeline type for a bone: " + timelineName + " (" + boneName + ")");
+                        }
+                    }
 				}
 			}
 
